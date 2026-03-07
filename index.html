@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pro Tic Tac Toe</title>
+
+<style>
+
+:root{
+--bg:#0f172a;
+--board:#1e293b;
+--hover:#334155;
+--text:white;
+}
+
+.light{
+--bg:#f1f5f9;
+--board:#ffffff;
+--hover:#e2e8f0;
+--text:#111;
+}
+
+body{
+background:var(--bg);
+color:var(--text);
+font-family:Arial;
+text-align:center;
+margin:0;
+}
+
+.container{
+max-width:420px;
+margin:auto;
+padding:15px;
+}
+
+.board{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:10px;
+margin-top:20px;
+}
+
+.cell{
+height:110px;
+background:var(--board);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:40px;
+cursor:pointer;
+border-radius:12px;
+}
+
+.cell:hover{
+background:var(--hover);
+}
+
+.controls{
+margin-top:10px;
+}
+
+button,select{
+padding:10px;
+margin:5px;
+border:none;
+border-radius:8px;
+font-size:16px;
+cursor:pointer;
+}
+
+button{
+background:#22c55e;
+color:white;
+}
+
+.scoreboard{
+margin-top:15px;
+font-size:18px;
+}
+
+.win{
+background:#22c55e !important;
+color:white;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Tic Tac Toe Pro</h2>
+
+<div class="controls">
+
+<select id="level">
+<option value="easy">Easy</option>
+<option value="medium">Medium</option>
+<option value="hard">Hard</option>
+</select>
+
+<button onclick="restart()">Restart</button> <button onclick="toggleTheme()">Theme</button>
+
+</div>
+
+<div id="status">Your Turn</div>
+
+<div class="board" id="board">
+
+<div class="cell"></div>
+<div class="cell"></div>
+<div class="cell"></div>
+
+<div class="cell"></div>
+<div class="cell"></div>
+<div class="cell"></div>
+
+<div class="cell"></div>
+<div class="cell"></div>
+<div class="cell"></div>
+
+</div>
+
+<div class="scoreboard">
+Player: <span id="pScore">0</span> |
+Computer: <span id="cScore">0</span> |
+Draw: <span id="dScore">0</span>
+</div>
+
+</div>
+
+<audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3"></audio> <audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
+
+<script>
+
+let cells=document.querySelectorAll(".cell")
+let board=["","","","","","","","",""]
+
+let player="X"
+let ai="O"
+let gameActive=true
+
+let pScore=0
+let cScore=0
+let dScore=0
+
+const wins=[
+[0,1,2],[3,4,5],[6,7,8],
+[0,3,6],[1,4,7],[2,5,8],
+[0,4,8],[2,4,6]
+]
+
+cells.forEach((cell,i)=>{
+
+cell.onclick=function(){
+
+if(board[i]!=="" || !gameActive) return
+
+playSound()
+
+move(i,player)
+
+if(gameActive){
+setTimeout(computerMove,400)
+}
+
+}
+
+})
+
+function playSound(){
+document.getElementById("clickSound").play()
+}
+
+function move(index,symbol){
+
+board[index]=symbol
+cells[index].innerHTML=symbol
+
+checkWinner()
+
+}
+
+function computerMove(){
+
+let level=document.getElementById("level").value
+let moveIndex
+
+if(level==="easy"){
+moveIndex=randomMove()
+}
+
+else if(level==="medium"){
+moveIndex=smartMove()
+}
+
+else{
+moveIndex=bestMove()
+}
+
+move(moveIndex,ai)
+
+}
+
+function randomMove(){
+
+let empty=board.map((v,i)=>v===""?i:null).filter(v=>v!==null)
+
+return empty[Math.floor(Math.random()*empty.length)]
+
+}
+
+function smartMove(){
+
+let win=findWinningMove(ai)
+if(win!==null) return win
+
+let block=findWinningMove(player)
+if(block!==null) return block
+
+return randomMove()
+
+}
+
+function findWinningMove(symbol){
+
+for(let pattern of wins){
+
+let [a,b,c]=pattern
+
+let values=[board[a],board[b],board[c]]
+
+if(values.filter(v=>v===symbol).length===2 && values.includes("")){
+
+if(board[a]==="") return a
+if(board[b]==="") return b
+if(board[c]==="") return c
+
+}
+
+}
+
+return null
+
+}
+
+function bestMove(){
+
+let bestScore=-Infinity
+let move
+
+for(let i=0;i<9;i++){
+
+if(board[i]===""){
+
+board[i]=ai
+let score=minimax(board,0,false)
+board[i]=""
+
+if(score>bestScore){
+bestScore=score
+move=i
+}
+
+}
+
+}
+
+return move
+
+}
+
+function minimax(newBoard,depth,isMax){
+
+let result=checkResult()
+
+if(result!==null){
+
+let scores={X:-10,O:10,draw:0}
+return scores[result]
+
+}
+
+if(isMax){
+
+let best=-Infinity
+
+for(let i=0;i<9;i++){
+
+if(newBoard[i]===""){
+
+newBoard[i]=ai
+best=Math.max(best,minimax(newBoard,depth+1,false))
+newBoard[i]=""
+
+}
+
+}
+
+return best
+
+}
+
+else{
+
+let best=Infinity
+
+for(let i=0;i<9;i++){
+
+if(newBoard[i]===""){
+
+newBoard[i]=player
+best=Math.min(best,minimax(newBoard,depth+1,true))
+newBoard[i]=""
+
+}
+
+}
+
+return best
+
+}
+
+}
+
+function checkResult(){
+
+for(let pattern of wins){
+
+let [a,b,c]=pattern
+
+if(board[a] && board[a]===board[b] && board[a]===board[c]){
+
+cells[a].classList.add("win")
+cells[b].classList.add("win")
+cells[c].classList.add("win")
+
+return board[a]
+
+}
+
+}
+
+if(board.every(cell=>cell!=="")){
+return "draw"
+}
+
+return null
+
+}
+
+function checkWinner(){
+
+let result=checkResult()
+
+if(result){
+
+gameActive=false
+
+if(result==="draw"){
+dScore++
+document.getElementById("dScore").innerText=dScore
+document.getElementById("status").innerText="Draw Game"
+}
+
+else if(result==="X"){
+pScore++
+document.getElementById("pScore").innerText=pScore
+document.getElementById("status").innerText="You Win!"
+}
+
+else{
+cScore++
+document.getElementById("cScore").innerText=cScore
+document.getElementById("status").innerText="Computer Wins"
+}
+
+document.getElementById("winSound").play()
+
+}
+
+}
+
+function restart(){
+
+board=["","","","","","","","",""]
+
+cells.forEach(cell=>{
+cell.innerHTML=""
+cell.classList.remove("win")
+})
+
+gameActive=true
+
+document.getElementById("status").innerText="Your Turn"
+
+}
+
+function toggleTheme(){
+document.body.classList.toggle("light")
+}
+
+</script>
+
+</body>
+</html>
