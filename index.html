@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 
 <html>
+
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pro Tic Tac Toe</title>
+<title>Tic Tac Toe</title>
 
 <style>
 
@@ -84,11 +86,19 @@ font-size:18px;
 background:#22c55e !important;
 color:white;
 }
-h3 a{
- text-decoration: double;
- border-radius: 2px;
- border-color: #242424;
 
+.footer{
+margin-top:25px;
+font-size:14px;
+opacity:0.8;
+}
+
+.privacy a{
+text-decoration:none;
+padding:6px 12px;
+border:1px solid #555;
+border-radius:6px;
+color:var(--text);
 }
 
 </style>
@@ -115,7 +125,7 @@ h3 a{
 
 <div id="status">Your Turn</div>
 
-<div class="board" id="board">
+<div class="board">
 
 <div class="cell"></div>
 <div class="cell"></div>
@@ -137,8 +147,15 @@ Computer: <span id="cScore">0</span> |
 Draw: <span id="dScore">0</span>
 </div>
 
+<div class="privacy" style="margin-top:20px;">
+<a href="Privacy Policy.html">Privacy Policy</a>
 </div>
-<h3 id="id1"><a href="Privacy Policy.html" style="color: white;">Privacy Policy</a></h3>
+
+<div class="footer">
+Developed by Bhavesh Dasari
+</div>
+
+</div>
 
 <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3"></audio> <audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
 
@@ -180,7 +197,11 @@ setTimeout(computerMove,400)
 })
 
 function playSound(){
-document.getElementById("clickSound").play()
+
+let sound=document.getElementById("clickSound")
+sound.currentTime=0
+sound.play().catch(()=>{})
+
 }
 
 function move(index,symbol){
@@ -200,11 +221,9 @@ let moveIndex
 if(level==="easy"){
 moveIndex=randomMove()
 }
-
 else if(level==="medium"){
 moveIndex=smartMove()
 }
-
 else{
 moveIndex=bestMove()
 }
@@ -216,7 +235,6 @@ move(moveIndex,ai)
 function randomMove(){
 
 let empty=board.map((v,i)=>v===""?i:null).filter(v=>v!==null)
-
 return empty[Math.floor(Math.random()*empty.length)]
 
 }
@@ -281,7 +299,7 @@ return move
 
 }
 
-function minimax(newBoard,depth,isMax){
+function minimax(newBoard,isMax){
 
 let result=checkResult()
 
@@ -301,7 +319,7 @@ for(let i=0;i<9;i++){
 if(newBoard[i]===""){
 
 newBoard[i]=ai
-best=Math.max(best,minimax(newBoard,depth+1,false))
+best=Math.max(best,minimax(newBoard,false))
 newBoard[i]=""
 
 }
@@ -321,7 +339,7 @@ for(let i=0;i<9;i++){
 if(newBoard[i]===""){
 
 newBoard[i]=player
-best=Math.min(best,minimax(newBoard,depth+1,true))
+best=Math.min(best,minimax(newBoard,true))
 newBoard[i]=""
 
 }
@@ -373,20 +391,18 @@ dScore++
 document.getElementById("dScore").innerText=dScore
 document.getElementById("status").innerText="Draw Game"
 }
-
 else if(result==="X"){
 pScore++
 document.getElementById("pScore").innerText=pScore
 document.getElementById("status").innerText="You Win!"
 }
-
 else{
 cScore++
 document.getElementById("cScore").innerText=cScore
 document.getElementById("status").innerText="Computer Wins"
 }
 
-document.getElementById("winSound").play()
+document.getElementById("winSound").play().catch(()=>{})
 
 }
 
@@ -402,7 +418,6 @@ cell.classList.remove("win")
 })
 
 gameActive=true
-
 document.getElementById("status").innerText="Your Turn"
 
 }
